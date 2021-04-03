@@ -1,5 +1,6 @@
 const chalk = require('chalk');
 const fs = require('fs');
+const _ld = require('lodash');
 
 var data = {};
 var files;
@@ -27,7 +28,7 @@ function addLogs(whatGroup,thermoc,thermof,thermin,thermip,ldr,led,room){
             let minutes = date_ob.getMinutes();
             // current seconds
             let seconds = date_ob.getSeconds();
-            var pushData = {
+            var pushData = [{
                 id:idData+1,
                 date:`${date}/${month}/${year}`,
                 time:`${hours}:${minutes}:${seconds}`,
@@ -40,10 +41,11 @@ function addLogs(whatGroup,thermoc,thermof,thermin,thermip,ldr,led,room){
                     "LED_Status":led, 
                     "Room":room
                 }
-            }
+            }]
 
-            files.push(pushData);
-            fs.writeFile('./logs/'+whatGroup+'/logs_arduino.json',JSON.stringify(files),function(err){
+            // files.push(pushData);
+            var update_Data = _ld.concat(files,pushData);
+            fs.writeFile('./logs/'+whatGroup+'/logs_arduino.json',JSON.stringify(update_Data),function(err){
                 if(err){
                     logsToCMD('Fs','found some error in writefile function','error');
                 } else {

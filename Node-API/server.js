@@ -1,5 +1,6 @@
 const { response } = require('express');
 const express = require('express');
+const _ld = require('lodash');
 const app = express();
 const portServer = 11111;
 
@@ -16,7 +17,18 @@ app.get('/',(req,res)=>{
     res.send('[xJoez] : Arduino Term Project');
 });
 
-
+app.get('/data_last/group/:Whatgroup',(req,res)=>{
+    let group_ = req.params.Whatgroup;
+    let rawdata = fs.readFileSync("./logs/"+group_+"/logs_arduino.json");
+    let respJSON = JSON.parse(rawdata);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Credentials', true); 
+    // res.json(respJSON);
+    let dataSorted = _ld.orderBy(respJSON,['id'],['desc']);
+    res.json(dataSorted);
+});
 
 app.get('/data/group/:whatGroup',(req,res)=>{
     let group_ = req.params.whatGroup;
@@ -29,23 +41,6 @@ app.get('/data/group/:whatGroup',(req,res)=>{
     res.json(respJSON);
 });
  
-// app.get('/add/group/:whatGroup/:data',(req,res)=>{
-//     let group_ = req.params.whatGroup;
-//     let data = req.params.data;
-//     fxWrite.addLogs(group_,data);
-//     fxWrite.logsToCMD('Arduino',`Webserver receive data from arduino ESP8266 ${data}`,'success');
-//     res.status(200).send({'status':'success'});
-// });
-
-// app.get('/data_7/group/:whatGroup',(req,res)=>{
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
-//     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-//     res.setHeader('Access-Control-Allow-Credentials', true); 
-//     let group_ = req.params.whatGroup;
-//     let rawdata =
-// });
-
 app.get('/data_now/group/:Whatgroup',(req,res)=>{
     let group_ = req.params.Whatgroup;
     fs.readFile("./logs/"+group_+"/logs_arduino.json",'utf8',function readF(err,data){
@@ -53,12 +48,11 @@ app.get('/data_now/group/:Whatgroup',(req,res)=>{
             logsToCMD("Fs","Found some error in now readfile function",'error');
         } else {
             var inFiles = JSON.parse(data);
-            var idData = inFiles.length;
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
             res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
             res.setHeader('Access-Control-Allow-Credentials', true); 
-            res.json(inFiles[idData - 1]);
+            res.json(_ld.last(inFiles));
         }
     });
 });
