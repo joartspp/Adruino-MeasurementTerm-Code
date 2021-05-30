@@ -9,11 +9,15 @@ const fs = require('fs');
 
 const delayData = 10000;
 
-app.get('/',(req,res)=>{
+app.use((req,res,next)=>{
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    res.setHeader('Access-Control-Allow-Credentials', true); 
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+})
+
+app.get('/',(req,res)=>{
     res.send('[xJoez] : Arduino Term Project');
 });
 
@@ -21,10 +25,6 @@ app.get('/data_last/group/:Whatgroup',(req,res)=>{
     let group_ = req.params.Whatgroup;
     let rawdata = fs.readFileSync("./logs/"+group_+"/logs_arduino.json");
     let respJSON = JSON.parse(rawdata);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    res.setHeader('Access-Control-Allow-Credentials', true); 
     // res.json(respJSON);
     let dataSorted = _ld.orderBy(respJSON,['id'],['desc']);
     res.json(dataSorted);
@@ -34,13 +34,9 @@ app.get('/data/group/:whatGroup',(req,res)=>{
     let group_ = req.params.whatGroup;
     let rawdata = fs.readFileSync("./logs/"+group_+"/logs_arduino.json");
     let respJSON = JSON.parse(rawdata);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    res.setHeader('Access-Control-Allow-Credentials', true); 
     res.json(respJSON);
 });
- 
+
 app.get('/data_now/group/:Whatgroup',(req,res)=>{
     let group_ = req.params.Whatgroup;
     fs.readFile("./logs/"+group_+"/logs_arduino.json",'utf8',function readF(err,data){
@@ -48,10 +44,6 @@ app.get('/data_now/group/:Whatgroup',(req,res)=>{
             logsToCMD("Fs","Found some error in now readfile function",'error');
         } else {
             var inFiles = JSON.parse(data);
-            res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
-            res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-            res.setHeader('Access-Control-Allow-Credentials', true); 
             res.json(_ld.last(inFiles));
         }
     });
@@ -74,7 +66,6 @@ app.get('/add/:group/:thermoc/:thermof/:thermin/:thermip/:ldr/:led/:room',(req,r
 
 app.listen(portServer,()=>{
     fxWrite.logsToCMD('Webserver',`Webserver is running on port ${portServer}`,'success');
-    // dataTester();
 });
 
 function dataTester(){
